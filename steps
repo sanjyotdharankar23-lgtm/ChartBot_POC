@@ -1,0 +1,112 @@
+pip install langchain openai chromadb
+
+structure:
+    access-control-poc/
+    ├── docker-compose.yml
+    ├── chatbot/
+    │   ├── Dockerfile
+    │   ├── requirements.txt
+    │   ├── app/
+    │   │   ├── __init__.py
+    │   │   ├── main.py
+    │   │   ├── auth.py
+    │   │   ├── database.py
+    │   │   ├── models.py
+    │   │   ├── schemas.py
+    │   │   ├── agents/
+    │   │   │   ├── __init__.py
+    │   │   │   ├── access_agent.py
+    │   │   │   └── nlp_processor.py
+    │   │   ├── routers/
+    │   │   │   ├── __init__.py
+    │   │   │   ├── chat.py
+    │   │   │   └── admin.py
+    │   │   └── templates/
+    │   │       └── index.html
+    ├── website/
+    │   ├── Dockerfile
+    │   ├── requirements.txt
+    │   ├── app/
+    │   │   ├── __init__.py
+    │   │   ├── main.py
+    │   │   ├── auth.py
+    │   │   ├── database.py
+    │   │   ├── models.py
+    │   │   ├── routers/
+    │   │   │   ├── __init__.py
+    │   │   │   ├── access.py
+    │   │   │   └── bappas.py
+    │   │   └── templates/
+    │   │       ├── index.html
+    │   │       └── user_access.html
+    └── init/
+        └── init_db.sql
+
+file structure:
+    # Go to your desired location
+    cd "C:\Users\SanjyotDharankar\Documents\projects"
+
+    # 1. Create root project folder
+    mkdir ChartBot-poc
+    cd ChartBot-poc
+
+    # 2. Create root-level files
+    ni docker-compose.yml -ItemType File
+
+    # 3. Create chatbot module
+    mkdir chatbot
+    cd chatbot
+    ni Dockerfile, requirements.txt -ItemType File
+
+    # 3.1 Create chatbot/app and its files
+    mkdir app
+    cd app
+    ni __init__.py, main.py, auth.py, database.py, models.py, schemas.py -ItemType File
+
+    # 3.2 Create agents/ and files
+    mkdir agents
+    cd agents
+    ni __init__.py, access_agent.py, nlp_processor.py -ItemType File
+    cd ..
+
+    # 3.3 Create routers/ and files
+    mkdir routers
+    cd routers
+    ni __init__.py, chat.py, admin.py -ItemType File
+    cd ..
+
+    # 3.4 Create templates/ and index.html
+    mkdir templates
+    cd templates
+    ni index.html -ItemType File
+    cd ../../..   # Back to ChartBot-poc root
+
+    # 4. Create website module
+    mkdir website
+    cd website
+    ni Dockerfile, requirements.txt -ItemType File
+
+    # 4.1 Create website/app and its files
+    mkdir app
+    cd app
+    ni __init__.py, main.py, auth.py, database.py, models.py -ItemType File
+
+    # 4.2 Create routers/ and files
+    mkdir routers
+    cd routers
+    ni __init__.py, access.py, bappas.py -ItemType File
+    cd ..
+
+    # 4.3 Create templates/ and files
+    mkdir templates
+    cd templates
+    ni index.html, user_access.html -ItemType File
+    cd ../../..  # Back to ChartBot-poc root
+
+    # 5. Create init directory and init_db.sql
+    mkdir init
+    cd init
+    ni init_db.sql -ItemType File
+    cd ..
+
+

@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: access_control
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+
+  chromadb:
+    image: chromadb/chroma
+    ports:
+      - "8000:8000"
+    environment:
+      - IS_PERSISTENT=TRUE
+    volumes:
+      - chroma_data:/chroma/chroma
+
+  chatbot:
+    build: ./chatbot
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=postgresql://admin:password@postgres:5432/access_control
+      - CHROMA_URL=http://chromadb:8000
+    depends_on:
+      - postgres
+      - chromadb
+
+  website:
+    build: ./website
+    ports:
+      - "8002:8000"
+    environment:
+      - DATABASE_URL=postgresql://admin:password@postgres:5432/access_control
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+  chroma_data:
