@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Access - Access Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .nav {
+            background: #343a40;
+            padding: 10px;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            display: inline-block;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .search-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .user-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+        }
+        .project-list {
+            margin-left: 20px;
+        }
+        .project-item {
+            background: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 3px;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>User Access Management</h1>
+        <p>View and manage user project access</p>
+    </div>
+    
+    <div class="nav">
+        <a href="/">Home</a>
+        <a href="/user-access">User Access</a>
+        <a href="http://localhost:8001" target="_blank">Chatbot</a>
+    </div>
+
+    <div class="container">
+        <div class="search-section">
+            <h3>Search User Access</h3>
+            <div class="form-group">
+                <label for="lanId">LAN ID:</label>
+                <input type="text" id="lanId" placeholder="Enter LAN ID (e.g., sdharan1)">
+            </div>
+            <button onclick="searchUserAccess()">Search Access</button>
+        </div>
+
+        <div id="results" class="results">
+            <!-- Results will be displayed here -->
+        </div>
+
+        <div id="bappasSection" style="display: none;">
+            <h3>Bappas Access Requests</h3>
+            <div class="form-group">
+                <label for="adGroup">AD Group:</label>
+                <input type="text" id="adGroup" placeholder="Enter AD Group Name">
+            </div>
+            <div class="form-group">
+                <label for="actionType">Action:</label>
+                <select id="actionType">
+                    <option value="grant">Grant Access</option>
+                    <option value="revoke">Revoke Access</option>
+                </select>
+            </div>
+            <button onclick="submitBappasRequest()">Submit Request</button>
+        </div>
+    </div>
+
+    <script>
+        async function searchUserAccess() {
+            const lanId = document.getElementById('lanId').value;
+            if (!lanId) {
+                alert('Please enter a LAN ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/access/user/${lanId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayUserAccess(data);
+                    document.getElementById('bappasSection').style.display = 'block';
+                } else {
+                    document.getElementById('results').innerHTML = `<p>Error: ${data.detail}</p>`;
+                }
+            } catch (error) {
+                document.getElementById('results').innerHTML = `<p>Error searching user: ${error}</p>`;
+            }
+        }
+
+        function displayUserAccess(data) {
+            const resultsDiv = document.getElementById('results');
+            let html = `
+                <div class="user-card">
+                    <h3>User: ${data.user.full_name} (${data.user.lan_id})</h3>
+                    <p>Email: ${data.user.email || 'N/A'}</p>
+                    
+                    <h4>Project Access:</h4>
+                    <div class="project-list">
+            `;
+
+            if (data.projects.length > 0) {
+                data.projects.forEach(project => {
+                    html += `
+                        <div class="project-item">
+                            <strong>${project.project_code}</strong> - ${project.project_name}<br>
+                            <small>Access Type: ${project.access_type} | Since: ${new Date(project.effective_from).toLocaleDateString()}</small>
+                        </div>
+                    `;
+                });
+            } else {
+                html += `<p>No active project access</p>`;
+            }
+
+            html += `</div></div>`;
+            resultsDiv.innerHTML = html;
+        }
+
+        async function submitBappasRequest() {
+            const lanId = document.getElementById('lanId').value;
+            const adGroup = document.getElementById('adGroup').value;
+            const actionType = document.getElementById('actionType').value;
+
+            if (!adGroup) {
+                alert('Please enter an AD Group name');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/bappas/request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_lan_id: lanId,
+                        ad_group_name: adGroup,
+                        action: actionType
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert(`Request submitted successfully: ${data.message}`);
+                } else {
+                    alert(`Error: ${data.detail}`);
+                }
+            } catch (error) {
+                alert(`Error submitting request: ${error}`);
+            }
+        }
+    </script>
+</body>
+</html>

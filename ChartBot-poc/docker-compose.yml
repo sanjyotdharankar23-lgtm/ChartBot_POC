@@ -18,6 +18,8 @@ services:
       - "8000:8000"
     environment:
       - IS_PERSISTENT=TRUE
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_HTTP_PORT=8000
     volumes:
       - chroma_data:/chroma/chroma
 
@@ -28,6 +30,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://admin:password@postgres:5432/access_control
       - CHROMA_URL=http://chromadb:8000
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - postgres
       - chromadb

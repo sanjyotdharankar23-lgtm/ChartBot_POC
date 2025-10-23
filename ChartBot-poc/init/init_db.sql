@@ -1,68 +1,160 @@
--- Users Table
-CREATE TABLE IF NOT EXISTS users (
+-- 1️⃣ Users Table
+CREATE TABLE Users (
     user_id SERIAL PRIMARY KEY,
+    full_name VARCHAR(255) NOT NULL,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
     lan_id VARCHAR(50) UNIQUE NOT NULL,
-    full_name VARCHAR(100) NOT NULL,
-    email VARCHAR(100),
+    email VARCHAR(255) NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Projects Table
-CREATE TABLE IF NOT EXISTS projects (
+-- 2️⃣ Projects Table
+CREATE TABLE Projects (
     project_id SERIAL PRIMARY KEY,
-    project_name VARCHAR(100) UNIQUE NOT NULL,
+    project_name VARCHAR(200) UNIQUE NOT NULL,
     description TEXT,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- AD Groups Table
-CREATE TABLE IF NOT EXISTS ad_groups (
-    ad_group_id SERIAL PRIMARY KEY,
-    project_id INTEGER REFERENCES projects(project_id),
-    ad_group_name VARCHAR(200) NOT NULL,
-    approver_email VARCHAR(100),
-    approver_lan_id VARCHAR(50) NOT NULL,
-    is_access_group BOOLEAN DEFAULT TRUE,
-    UNIQUE(project_id, ad_group_name)
+-- 3️⃣ AdGroups Table
+CREATE TABLE AdGroups (
+    adgroup_id SERIAL PRIMARY KEY,
+    adgroup_name VARCHAR(255) NOT NULL,
+    project_id INT NOT NULL,
+    approver_emails TEXT, -- 'john@abc.com,alex@abc.com,meena@abc.com'
+    approver_lanids TEXT,  -- 'johan41,alexdo8,meenaol89'
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES Projects(project_id)
 );
 
--- SCD Access Table
-CREATE TABLE IF NOT EXISTS user_project_access (
-    access_id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(user_id),
-    project_id INTEGER REFERENCES projects(project_id),
-    access_type VARCHAR(20) CHECK (access_type IN ('GRANTED', 'REQUESTED', 'REVOKED')),
-    effective_from TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    effective_to TIMESTAMP,
-    requested_by VARCHAR(100),
-    status VARCHAR(20) DEFAULT 'ACTIVE'
+-- 4️⃣ UserProjectAssignment Table
+CREATE TABLE UserProjectAssignment (
+    assignment_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    project_id INT NOT NULL,
+    start_date DATE DEFAULT CURRENT_DATE,
+    end_date DATE,
+    is_current BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (project_id) REFERENCES Projects(project_id)
 );
 
--- Audit Log Table
-CREATE TABLE IF NOT EXISTS audit_logs (
-    log_id SERIAL PRIMARY KEY,
-    action_type VARCHAR(50),
-    user_lan_id VARCHAR(50),
-    project_code VARCHAR(50),
-    ad_groups TEXT,
-    performed_by VARCHAR(100),
-    performed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(20)
+-- 5️⃣ UserAdGroupAccess Table
+CREATE TABLE UserAdGroupAccess (
+    user_id INT NOT NULL,
+    adgroup_id INT NOT NULL,
+    access_granted BOOLEAN DEFAULT TRUE,
+    grant_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    revoke_date TIMESTAMP NULL,
+    PRIMARY KEY (user_id, adgroup_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (adgroup_id) REFERENCES AdGroups(adgroup_id)
 );
 
--- Insert sample data
-INSERT INTO projects (project_name, description) VALUES 
-('det', 'Data Engineering Team'),
-('cart', 'Cart Analysis Project'),
-('oap', 'Operations Analytics Platform'),
-('pmba', 'Project Management Business Analytics'),
-('eo', 'Executive Operations');
+-- 6️⃣ AdGroupAccessRequests Table
+-- Note: Using VARCHAR instead of ENUM for PostgreSQL compatibility
+CREATE TABLE AdGroupAccessRequests (
+    request_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    adgroup_id INT NOT NULL,
+    request_type VARCHAR(20) NOT NULL CHECK (request_type IN ('grant', 'revoke')),
+    request_source VARCHAR(20) DEFAULT 'chatbot' CHECK (request_source IN ('chatbot', 'bappas', 'admin')),
+    request_status VARCHAR(20) DEFAULT 'pending' CHECK (request_status IN ('pending', 'approved', 'rejected', 'cancelled')),
+    approver_lanid VARCHAR(50),
+    approver_email VARCHAR(255),
+    requester_lanid VARCHAR(50),
+    request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    decision_date TIMESTAMP NULL,
+    comments TEXT,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (adgroup_id) REFERENCES AdGroups(adgroup_id)
+);
 
-INSERT INTO ad_groups (project_id, ad_group_name, approver_email, approver_lan_id) VALUES 
-(1, 'det_developers', 'det_lead@company.com', 'detlead1'),
-(1, 'det_admins', 'det_admin@company.com', 'detadmin1'),
-(2, 'cart_users', 'cart_lead@company.com', 'cartlead1'),
-(3, 'oap_analysts', 'oap_lead@company.com', 'oaplead1'),
-(4, 'pmba_access', 'pmba_lead@company.com', 'pmbalead1');
+-- 7️⃣ AccessHistory Table
+-- Note: Using VARCHAR instead of ENUM for PostgreSQL compatibility
+CREATE TABLE AccessHistory (
+    history_id SERIAL PRIMARY KEY,
+    user_id INT,
+    adgroup_id INT,
+    action VARCHAR(20) NOT NULL CHECK (action IN ('grant', 'revoke', 'request', 'approval')),
+    action_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    action_by VARCHAR(50), -- LAN ID or system
+    comments TEXT,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (adgroup_id) REFERENCES AdGroups(adgroup_id)
+);
+
+-- 8️⃣ SystemApprovers Table
+-- Note: Using VARCHAR instead of ENUM for PostgreSQL compatibility
+CREATE TABLE SystemApprovers (
+    approver_id SERIAL PRIMARY KEY,
+    lan_id VARCHAR(50) UNIQUE,
+    full_name VARCHAR(255),
+    email VARCHAR(255),
+    role VARCHAR(20) DEFAULT 'approver' CHECK (role IN ('approver', 'admin', 'hr')),
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- 9️⃣ NotificationQueue Table
+-- Note: Using VARCHAR instead of ENUM for PostgreSQL compatibility
+CREATE TABLE NotificationQueue (
+    notification_id SERIAL PRIMARY KEY,
+    recipient_email VARCHAR(255),
+    recipient_lanid VARCHAR(50),
+    message_title VARCHAR(255),
+    message_body TEXT,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'failed')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    sent_at TIMESTAMP NULL
+);
+
+-- Insert sample data into Users table
+INSERT INTO Users (full_name, first_name, last_name, lan_id, email, is_active) VALUES
+('Sanjyot Dharankar', 'Sanjyot', 'Dharankar', 'sdharan1', 'sanjyot@example.com', TRUE),
+('Aditi Gupta', 'Aditi', 'Gupta', 'agupta2', 'aditi@example.com', TRUE),
+('System Admin', 'System', 'Admin', 'admin1', 'admin@example.com', TRUE),
+('HR Manager', 'HR', 'Manager', 'hr1', 'hr@example.com', TRUE);
+
+-- Insert sample data into Projects table
+INSERT INTO Projects (project_name, description, is_active) VALUES
+('Project Alpha', 'A project focused on AI research.', TRUE),
+('Project Beta', 'A project focused on cloud infrastructure.', TRUE),
+('DET', 'Data Engineering Team', TRUE),
+('CART', 'Cart Analysis Project', TRUE),
+('OAP', 'Order Analytics Platform', TRUE),
+('PMBA', 'Product Management Business Analytics', TRUE),
+('EO', 'E-commerce Operations', TRUE);
+
+-- Insert sample data into AdGroups table
+INSERT INTO AdGroups (adgroup_name, project_id, approver_emails, approver_lanids, is_active) VALUES
+('AI Research Group', 1, 'john@abc.com,alex@abc.com,meena@abc.com', 'johan41,alexdo8,meenaol89', TRUE),
+('Cloud Dev Team', 2, 'alice@xyz.com,paul@xyz.com', 'alicep7,paulb23', TRUE),
+('DET_Developers', 3, 'det-manager@example.com', 'manager1', TRUE),
+('DET_Admins', 3, 'det-admin@example.com', 'admin1', TRUE),
+('CART_Analysts', 4, 'cart-lead@example.com', 'lead1', TRUE),
+('OAP_Users', 5, 'oap-admin@example.com', 'admin2', TRUE),
+('PMBA_Access', 6, 'pmba-manager@example.com', 'manager2', TRUE),
+('EO_Team', 7, 'eo-director@example.com', 'director1', TRUE);
+
+-- Insert sample data into SystemApprovers table
+INSERT INTO SystemApprovers (lan_id, full_name, email, role, is_active) VALUES
+('admin1', 'System Administrator', 'admin@example.com', 'admin', TRUE),
+('hr1', 'HR Manager', 'hr@example.com', 'hr', TRUE),
+('manager1', 'Project Manager One', 'manager1@example.com', 'approver', TRUE),
+('manager2', 'Project Manager Two', 'manager2@example.com', 'approver', TRUE);
+
+-- Create indexes for better performance
+CREATE INDEX idx_user_project_assignment_user_id ON UserProjectAssignment(user_id);
+CREATE INDEX idx_user_project_assignment_project_id ON UserProjectAssignment(project_id);
+CREATE INDEX idx_user_ad_group_access_user_id ON UserAdGroupAccess(user_id);
+CREATE INDEX idx_user_ad_group_access_adgroup_id ON UserAdGroupAccess(adgroup_id);
+CREATE INDEX idx_ad_group_access_requests_user_id ON AdGroupAccessRequests(user_id);
+CREATE INDEX idx_ad_group_access_requests_status ON AdGroupAccessRequests(request_status);
+CREATE INDEX idx_access_history_user_id ON AccessHistory(user_id);
+CREATE INDEX idx_access_history_action_date ON AccessHistory(action_date);
+CREATE INDEX idx_notification_queue_status ON NotificationQueue(status);

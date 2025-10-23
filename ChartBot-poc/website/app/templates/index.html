@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Control Portal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .nav {
+            background: #343a40;
+            padding: 10px;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            display: inline-block;
+        }
+        .nav a:hover {
+            background: #495057;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 10px 0;
+            background: #f8f9fa;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Access Control Portal</h1>
+        <p>Manage user access and permissions</p>
+    </div>
+    
+    <div class="nav">
+        <a href="/">Home</a>
+        <a href="/user-access">User Access</a>
+        <a href="http://localhost:8001" target="_blank">Chatbot</a>
+    </div>
+
+    <div class="container">
+        <h2>Welcome to Access Control Portal</h2>
+        
+        <div class="card">
+            <h3>Bappas Access Requests</h3>
+            <p>Submit and manage AD group access requests</p>
+            <a href="/user-access" class="btn">Manage Access</a>
+        </div>
+
+        <div class="card">
+            <h3>Access Control Chatbot</h3>
+            <p>Use natural language to manage access controls</p>
+            <a href="http://localhost:8001" target="_blank" class="btn">Open Chatbot</a>
+        </div>
+
+        <div class="card">
+            <h3>User Access Overview</h3>
+            <p>View and manage user project access</p>
+            <a href="/user-access" class="btn">View Access</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,112 +1,58 @@
-pip install langchain openai chromadb
 
-structure:
-    access-control-poc/
-    ├── docker-compose.yml
-    ├── chatbot/
-    │   ├── Dockerfile
-    │   ├── requirements.txt
-    │   ├── app/
-    │   │   ├── __init__.py
-    │   │   ├── main.py
-    │   │   ├── auth.py
-    │   │   ├── database.py
-    │   │   ├── models.py
-    │   │   ├── schemas.py
-    │   │   ├── agents/
-    │   │   │   ├── __init__.py
-    │   │   │   ├── access_agent.py
-    │   │   │   └── nlp_processor.py
-    │   │   ├── routers/
-    │   │   │   ├── __init__.py
-    │   │   │   ├── chat.py
-    │   │   │   └── admin.py
-    │   │   └── templates/
-    │   │       └── index.html
-    ├── website/
-    │   ├── Dockerfile
-    │   ├── requirements.txt
-    │   ├── app/
-    │   │   ├── __init__.py
-    │   │   ├── main.py
-    │   │   ├── auth.py
-    │   │   ├── database.py
-    │   │   ├── models.py
-    │   │   ├── routers/
-    │   │   │   ├── __init__.py
-    │   │   │   ├── access.py
-    │   │   │   └── bappas.py
-    │   │   └── templates/
-    │   │       ├── index.html
-    │   │       └── user_access.html
-    └── init/
-        └── init_db.sql
+# Navigate to project root
+cd access-control-poc
 
-file structure:
-    # Go to your desired location
-    cd "C:\Users\SanjyotDharankar\Documents\projects"
+# Create virtual environment
+python -m venv venv
 
-    # 1. Create root project folder
-    mkdir ChartBot-poc
-    cd ChartBot-poc
+# Activate virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
 
-    # 2. Create root-level files
-    ni docker-compose.yml -ItemType File
+##Install Dependencies
 
-    # 3. Create chatbot module
-    mkdir chatbot
-    cd chatbot
-    ni Dockerfile, requirements.txt -ItemType File
+# Install chatbot dependencies
+pip install -r chatbot/requirements.txt
 
-    # 3.1 Create chatbot/app and its files
-    mkdir app
-    cd app
-    ni __init__.py, main.py, auth.py, database.py, models.py, schemas.py -ItemType File
+# Install website dependencies  
+pip install -r website/requirements.txt
 
-    # 3.2 Create agents/ and files
-    mkdir agents
-    cd agents
-    ni __init__.py, access_agent.py, nlp_processor.py -ItemType File
-    cd ..
-
-    # 3.3 Create routers/ and files
-    mkdir routers
-    cd routers
-    ni __init__.py, chat.py, admin.py -ItemType File
-    cd ..
-
-    # 3.4 Create templates/ and index.html
-    mkdir templates
-    cd templates
-    ni index.html -ItemType File
-    cd ../../..   # Back to ChartBot-poc root
-
-    # 4. Create website module
-    mkdir website
-    cd website
-    ni Dockerfile, requirements.txt -ItemType File
-
-    # 4.1 Create website/app and its files
-    mkdir app
-    cd app
-    ni __init__.py, main.py, auth.py, database.py, models.py -ItemType File
-
-    # 4.2 Create routers/ and files
-    mkdir routers
-    cd routers
-    ni __init__.py, access.py, bappas.py -ItemType File
-    cd ..
-
-    # 4.3 Create templates/ and files
-    mkdir templates
-    cd templates
-    ni index.html, user_access.html -ItemType File
-    cd ../../..  # Back to ChartBot-poc root
-
-    # 5. Create init directory and init_db.sql
-    mkdir init
-    cd init
-    ni init_db.sql -ItemType File
-    cd ..
+test connecction
+python init_database.py
+python test_setup.py
 
 
+# Activate virtual environment
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Initialize the database with 9 tables
+python init_database.py
+
+# Start the applications
+cd chatbot && uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload &
+cd website && uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload &
+
+
+
+
+manually run requrements
+ 
+# Install basic packages first
+pip install fastapi==0.104.1 uvicorn==0.24.0 sqlalchemy==2.0.23 psycopg2-binary==2.9.11
+
+# Install OpenAI and related packages
+pip install openai==1.12.0 requests==2.31.0 python-dotenv==1.0.0 jinja2==3.1.2
+
+# Install authentication packages
+pip install python-jose[cryptography]==3.3.0 python-multipart==0.0.6
+
+# Try installing pydantic with pre-compiled wheels
+pip install pydantic==2.5.0 --only-binary=all
+
+# Install LangChain components
+pip install langchain==0.0.346 langchain-community==0.0.10 langchain-core==0.1.0
+
+# Finally, try ChromaDB
+pip install chromadb==0.4.15

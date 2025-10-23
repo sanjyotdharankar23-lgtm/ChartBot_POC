@@ -14,11 +14,12 @@ class UserCreate(UserBase):
 class UserResponse(UserBase):
     user_id: int
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
 
 class ProjectBase(BaseModel):
+    project_code: str
     project_name: str
     description: Optional[str] = None
     is_active: bool = True
@@ -26,7 +27,7 @@ class ProjectBase(BaseModel):
 class ProjectResponse(ProjectBase):
     project_id: int
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
 
@@ -39,14 +40,27 @@ class ADGroupBase(BaseModel):
 
 class ADGroupResponse(ADGroupBase):
     ad_group_id: int
-    
+
     class Config:
         from_attributes = True
 
-class AccessRequest(BaseModel):
-    user_lan_id: str
-    project_name: str
-    action: str  # 'grant' or 'revoke'
+class AccessRequestBase(BaseModel):
+    user_id: int
+    project_id: int
+    ad_group_id: Optional[int] = None
+    request_type: str
+    comments: Optional[str] = None
+
+class AccessRequestResponse(AccessRequestBase):
+    request_id: int
+    request_status: str
+    requested_by: str
+    approved_by: Optional[str] = None
+    approval_date: Optional[datetime] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 class ChatMessage(BaseModel):
     message: str
@@ -56,3 +70,10 @@ class ChatResponse(BaseModel):
     response: str
     action_taken: Optional[str] = None
     requires_confirmation: bool = False
+    user_info: Optional[dict] = None
+    project_info: Optional[dict] = None
+
+class AccessAction(BaseModel):
+    user_lan_id: str
+    project_name: str
+    action: str
